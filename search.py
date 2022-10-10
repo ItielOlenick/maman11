@@ -16,6 +16,7 @@
 In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
+from typing import Union
 
 import util
 
@@ -87,102 +88,18 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     frontier = util.Stack()
-    visited = []
-    path = []
-    cost = 0
-
-    curr_node = problem.getStartState()
-
-    if problem.isGoalState(problem.getStartState()):
-        return path
-
-    frontier.push((curr_node, path, cost))
-
-    while not frontier.isEmpty():
-        curr_node, path, cost = frontier.pop()
-        visited.append(curr_node)
-
-        if problem.isGoalState(curr_node):
-            return path
-
-        for child, action, cost in problem.getSuccessors(curr_node):
-            new_path = path+[action]
-            new_cost = problem.getCostOfActions(new_path)
-
-            if child not in visited:
-                frontier.push((child, new_path, new_cost))
-
-    return []
+    return general_search(problem, frontier)
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     frontier = util.Queue()
-    visited = []
-    path = []
-    cost = 0
-
-    curr_node = problem.getStartState()
-
-    if problem.isGoalState(problem.getStartState()):
-        return path
-
-    frontier.push((curr_node, path, cost))
-
-    while not frontier.isEmpty():
-        curr_node, path, cost = frontier.pop()
-        visited.append(curr_node)
-
-        if problem.isGoalState(curr_node):
-            return path
-
-        for child, action, cost in problem.getSuccessors(curr_node):
-            new_path = path + [action]
-            new_cost = problem.getCostOfActions(new_path)
-
-            if child not in visited and child not in [state[0] for state in frontier.list]:
-                frontier.push((child, new_path, new_cost))
-
-    return []
+    return general_search(problem, frontier)
 
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    global old_cost
-    frontier = util.PriorityQueue()
-    visited = []
-    path = []
-    cost = 0
-
-    curr_node = problem.getStartState()
-
-    if problem.isGoalState(problem.getStartState()):
-        return path
-
-    frontier.push((curr_node, path), 0)
-
-    while not frontier.isEmpty():
-        curr_node, path = frontier.pop()
-        visited.append(curr_node)
-
-        if problem.isGoalState(curr_node):
-            return path
-
-        for child, action, cost in problem.getSuccessors(curr_node):
-            new_path = path + [action]
-            new_cost = problem.getCostOfActions(new_path)
-
-            if child not in visited and child not in (state[2][0] for state in frontier.heap):
-                frontier.push((child, new_path), new_cost)
-
-            elif child not in visited and child in (state[2][0] for state in frontier.heap):
-                for state in frontier.heap:
-                    if state[2][0] == child:
-                        old_cost = problem.getCostOfActions(state[2][1])
-
-                if old_cost > new_cost:
-                    frontier.update((child, new_path), new_cost)
-
-    return []
+    frontier = util.PriorityQueueWithFunction(lambda x: x[2])
+    return general_search(problem, frontier)
 
 
 def nullHeuristic(state, problem=None):
@@ -192,42 +109,35 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
+
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     frontier = util.PriorityQueueWithFunction(
-        lambda state: problem.getCostOfActions(state[1]) + heuristic(state[0], problem)
+        lambda state: state[2] + heuristic(state[0], problem)
     )
-    visited = []
-    path = []
-
-    curr_node = problem.getStartState()
-
-    if problem.isGoalState(problem.getStartState()):
-        return path
-
-    frontier.push((curr_node, path, heuristic))
-
-    while not frontier.isEmpty():
-        curr_node, path, cost = frontier.pop()
-
-        if curr_node in visited:
-            continue
-
-        visited.append(curr_node)
-
-        if problem.isGoalState(curr_node):
-            return path
-
-        for child, action, cost in problem.getSuccessors(curr_node):
-            new_path = path + [action]
-
-            if child not in visited:
-                frontier.push((child, new_path, heuristic))
-
-    return []
+    return general_search(problem, frontier)
 
 # Abbreviations
 bfs = breadthFirstSearch
 dfs = depthFirstSearch
 astar = aStarSearch
 ucs = uniformCostSearch
+
+
+def general_search(problem, frontier, heuristic=nullHeuristic):
+    frontier.push((problem.getStartState(), [], heuristic(problem.getStartState(), problem)))
+    visited = set()
+
+    while not frontier.isEmpty():
+        curr_node, path, cost = frontier.pop()
+
+        if curr_node not in visited:
+            visited.add(curr_node)
+
+            if problem.isGoalState(curr_node):
+                return path
+
+            for child, action, child_cost in problem.getSuccessors(curr_node):
+                frontier.push((child, path + [action], cost + child_cost))
+
+    return []
