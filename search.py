@@ -98,6 +98,7 @@ def breadthFirstSearch(problem):
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
+    # The function is simply the cost of the node.
     frontier = util.PriorityQueueWithFunction(lambda x: x[2])
     return general_search(problem, frontier)
 
@@ -112,6 +113,7 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
+    # The function is the cost of the node plus the heuristic.
     frontier = util.PriorityQueueWithFunction(
         lambda state: state[2] + heuristic(state[0], problem)
     )
@@ -125,6 +127,10 @@ ucs = uniformCostSearch
 
 
 def general_search(problem, frontier, heuristic=nullHeuristic):
+    """
+    Represents a general search algorythm implementation.
+    As all search problems are essentially defined by the data structure of the frontier.
+    """
     frontier.push((problem.getStartState(), [], heuristic(problem.getStartState(), problem)))
     visited = set()
 

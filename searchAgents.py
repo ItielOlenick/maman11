@@ -414,7 +414,7 @@ class FoodSearchProblem:
             if not self.walls[nextx][nexty]:
                 nextFood = state[1].copy()
                 nextFood[nextx][nexty] = False
-                successors.append( ( ((nextx, nexty), nextFood), direction, 1) )
+                successors.append((((nextx, nexty), nextFood), direction, 1))
         return successors
 
     def getCostOfActions(self, actions):
@@ -466,11 +466,6 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-
-    def manhattan_dist(point_a, point_b):
-        x1, y1 = point_a
-        x2, y2 = point_b
-        return abs(x1 - x2) + abs(y1 - y2)
 
     if 'dist_to_food' not in problem.heuristicInfo:
         problem.heuristicInfo['dist_to_food'] = {}
